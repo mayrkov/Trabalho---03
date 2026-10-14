@@ -1,0 +1,22 @@
+[project]
+name = "trabalho-pratico-03"
+version = "0.1.0"
+description = "API de delivery de pizzas (TP03 - Arquitetura de Software)"
+authors = [
+    {name = "Mayk Douglas",email = "maykdouglaslima@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard] (>=0.143.0,<0.144.0)",
+    "sqlalchemy (>=2.1.4,<3.0.0)",
+    "alembic (>=1.20.0,<2.0.0)"
+]
+
+[tool.poetry]
+package-mode = false
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
