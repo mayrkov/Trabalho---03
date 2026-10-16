@@ -19,12 +19,29 @@ Pedido    1 ──── N ItemPedido
 Produto   1 ──── N ItemPedido
 ```
 
+![Diagrama entidade-relacionamento](assets/diagrama.png)
+
+> O arquivo editável está em [`assets/diagrama.drawio`](assets/diagrama.drawio) — abra em
+> https://app.diagrams.net (*File → Open from → Device*).
+
 | Entidade | Atributos principais |
 |----------|----------------------|
 | `Cliente` | id, nome, telefone, endereco |
 | `Produto` | id, nome, descricao, preco |
 | `Pedido` | id, cliente_id, status, valor_total, criado_em |
 | `ItemPedido` | id, pedido_id, produto_id, quantidade, subtotal |
+
+### Regras de negócio
+
+- Um **pedido** só pode ser criado para um **cliente existente** (senão `404`).
+- Um **item** só pode ser criado se o **pedido** e o **produto** existirem (senão `404`).
+- O `subtotal` do item é calculado pela API (`preco do produto × quantidade`) e o
+  `valor_total` do pedido é recalculado sempre que um item é criado, alterado ou removido.
+- `status` do pedido: `aberto` (padrão), `em_preparo`, `saiu_para_entrega`, `entregue`,
+  `cancelado` — qualquer outro valor retorna `422`.
+- Remover um **cliente** remove seus pedidos; remover um **pedido** remove seus itens.
+- Um **produto** que já está em algum pedido não pode ser removido (`409`).
+- Preço e quantidade devem ser maiores que zero (`422`).
 
 ## Estrutura de pastas
 
@@ -204,7 +221,7 @@ O caminho do interpretador é sempre o mesmo (passo 1); muda só onde fica a op�
 | GET | `/produtos/{id}` | Busca produto |
 | POST | `/produtos` | Cria produto (201) |
 | PUT | `/produtos/{id}` | Atualiza produto |
-| DELETE | `/produtos/{id}` | Remove produto (204) |
+| DELETE | `/produtos/{id}` | Remove produto (204; 409 se estiver em algum pedido) |
 | GET | `/clientes` | Lista clientes |
 | GET | `/clientes/{id}` | Busca cliente |
 | POST | `/clientes` | Cria cliente (201) |
@@ -213,20 +230,23 @@ O caminho do interpretador é sempre o mesmo (passo 1); muda só onde fica a op�
 | GET | `/pedidos` | Lista pedidos |
 | GET | `/pedidos/{id}` | Busca pedido |
 | POST | `/pedidos` | Cria pedido (valida cliente — 201) |
-| PATCH | `/pedidos/{id}/status` | Atualiza status |
+| PATCH | `/pedidos/{id}/status` | Atualiza status (422 se inválido) |
 | DELETE | `/pedidos/{id}` | Remove pedido (204) |
 | GET | `/itens` | Lista itens |
 | GET | `/itens/{id}` | Busca item |
 | POST | `/itens` | Cria item (valida pedido e produto — 201) |
-| PUT | `/itens/{id}` | Atualiza item |
+| PUT | `/itens/{id}` | Atualiza quantidade e recalcula subtotal |
 | DELETE | `/itens/{id}` | Remove item (204) |
+
+Rotas com `{id}` retornam **404** quando o registro não existe e dados inválidos no corpo
+retornam **422**.
 
 ## Equipe
 
 | Nome | Responsabilidade |
 |------|------------------|
 | Mayk | Infraestrutura, integração e migrações |
-| Mairon | Diagramas + `Produto` |
+| Wendhel | Diagramas + `Produto` |
 | Miguel | `Cliente` |
 | Daniel | `Pedido` |
-| Wendhel | `ItemPedido` |
+| Mairon | `ItemPedido` |
